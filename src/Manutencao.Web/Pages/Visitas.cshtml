@@ -1,0 +1,57 @@
+@page
+@model VisitasModel
+@{
+    ViewData["Title"] = "Visitas e rastreio";
+    ViewData["Subtitle"] = "Deslocamento ao vivo, prova fotográfica e avaliação do cliente.";
+    var live = Model.Visits.Count(v => v.VisitStatus is ServiceRequestStatus.EmDeslocamento or ServiceRequestStatus.EmAtendimento);
+    var done = Model.Visits.Count(v => v.VisitStatus == ServiceRequestStatus.Concluida);
+}
+
+<div class="kpis">
+    <div class="kpi"><span class="muted">Visitas</span><strong>@Model.Visits.Count</strong></div>
+    <div class="kpi"><span class="muted">Em campo</span><strong>@live</strong></div>
+    <div class="kpi"><span class="muted">Concluídas</span><strong>@done</strong></div>
+</div>
+
+<div class="panel">
+    @if (Model.Visits.Count == 0)
+    {
+        <div class="empty">Nenhuma visita despachada ainda.</div>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Protocolo</th>
+                    <th>Técnico</th>
+                    <th>Status</th>
+                    <th>GPS</th>
+                    <th>Prova</th>
+                    <th>Feedback</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var v in Model.Visits)
+                {
+                    <tr>
+                        <td>@v.Protocol<br /><span class="muted">@v.Title</span></td>
+                        <td>@v.TechnicianName</td>
+                        <td><span class="badge @v.VisitStatus">@StatusDisplay.Label(v.VisitStatus)</span></td>
+                        <td>
+                            @if (v.LastLatitude is not null)
+                            {
+                                <span>@v.LastLatitude?.ToString("F4"), @v.LastLongitude?.ToString("F4")</span>
+                            }
+                            else { <span class="muted">Aguardando GPS</span> }
+                        </td>
+                        <td>@(string.IsNullOrEmpty(v.CompletionPhotoPath) ? "—" : "Anexada")</td>
+                        <td>@(v.FeedbackRating is int stars ? $"{stars}/5" : "—")</td>
+                        <td><a class="btn ghost" asp-page="/Visita" asp-route-id="@v.Id">Abrir mapa</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

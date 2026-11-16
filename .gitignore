@@ -1,0 +1,25 @@
+# Android / Gradle (cliente e tecnico)
+.gradle/
+**/build/
+*.apk
+*.aab
+local.properties
+.idea/
+*.iml
+
+# VPN / Chaves privadas geradas pelo WireGuard
+vpn/wireguard/config/
+
+# .NET / Visual Studio (caso tenha pasta da API na raiz)
+bin/
+obj/
+*.user
+*.suo
+*.db
+*.db-shm
+*.db-wal
+
+# Variáveis de ambiente e sistema
+.env
+.DS_Store
+Thumbs.db

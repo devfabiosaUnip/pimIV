@@ -1,0 +1,46 @@
+@page
+@model TecnicosModel
+@{
+    ViewData["Title"] = "Técnicos";
+    ViewData["Subtitle"] = "Última posição GPS reportada pelo app de campo.";
+}
+
+<div class="panel">
+    @if (Model.Techs.Count == 0)
+    {
+        <div class="empty">Nenhum técnico cadastrado.</div>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nome</th>
+                    <th>Especialidades</th>
+                    <th>Última posição GPS</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var t in Model.Techs)
+                {
+                    <tr>
+                        <td>@t.EmployeeCode</td>
+                        <td>@t.FullName</td>
+                        <td>@t.Specialties</td>
+                        <td>
+                            @if (t.LastLatitude is not null)
+                            {
+                                <span>@t.LastLatitude, @t.LastLongitude · @t.LastLocationAt?.ToLocalTime()</span>
+                            }
+                            else
+                            {
+                                <span class="muted">Aguardando o técnico abrir o GPS</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

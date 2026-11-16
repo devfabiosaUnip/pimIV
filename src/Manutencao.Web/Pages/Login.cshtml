@@ -1,0 +1,34 @@
+@page
+@model LoginModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Entrar — Central de Manutenção</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="login-wrap">
+    <form method="post" asp-page="/Login" class="login-card">
+        <h1>Central ASP.NET</h1>
+        <p class="muted">Operação: aprovar, despachar e rastrear técnicos em campo.</p>
+        @if (!string.IsNullOrEmpty(Model.Error))
+        {
+            <div class="alert">@Model.Error</div>
+        }
+        <label class="field">E-mail
+            <input asp-for="Email" autocomplete="username" />
+        </label>
+        <label class="field">Senha
+            <input asp-for="Password" type="password" autocomplete="current-password" />
+        </label>
+        <button class="btn primary" type="submit">Entrar</button>
+        <p class="muted">Demo: operador@empresa.local / Operador@123</p>
+    </form>
+</body>
+</html>

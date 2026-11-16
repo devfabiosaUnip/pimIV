@@ -1,0 +1,92 @@
+@page "{id:guid}"
+@model VisitaModel
+@{
+    ViewData["Title"] = Model.Visit?.Protocol ?? "Visita";
+    ViewData["Subtitle"] = "Rastreio ao vivo, prova do reparo e avaliação do cliente.";
+}
+
+@if (Model.Visit is null)
+{
+    <p>Visita não encontrada.</p>
+}
+else
+{
+    <div class="split">
+        <section class="panel">
+            <h3>@Model.Visit.Title</h3>
+            <p>@Model.Visit.Description</p>
+            <p class="muted">@Model.Visit.AddressLine, @Model.Visit.City</p>
+            <p>
+                Técnico: <strong>@Model.Visit.TechnicianName</strong>
+                <span class="badge @Model.Visit.VisitStatus">@StatusDisplay.Label(Model.Visit.VisitStatus)</span>
+            </p>
+            @if (Model.Visit.VisitStatus is ServiceRequestStatus.EmDeslocamento or ServiceRequestStatus.Atribuida)
+            {
+                <p class="live">Rastreando técnico</p>
+            }
+            <div id="map" class="map"></div>
+            <div class="legend">
+                <span><i class="dot client"></i>Cliente</span>
+                <span><i class="dot tech"></i>Técnico</span>
+                <span id="trackMeta" class="muted"></span>
+            </div>
+        </section>
+        <section class="panel">
+            <h3>Prova do reparo</h3>
+            @if (!string.IsNullOrEmpty(Model.ProofFile))
+            {
+                <img class="proof" src="/provas/@Model.ProofFile" alt="Foto do reparo" />
+                <p>@Model.Visit.CompletionNotes</p>
+            }
+            else
+            {
+                <p class="muted">Ainda sem foto anexada pelo técnico.</p>
+            }
+
+            <h3>Feedback do cliente</h3>
+            @if (Model.Visit.FeedbackRating is int rating)
+            {
+                <div class="stars">@VisitaModel.Stars(rating)</div>
+                <p>@Model.Visit.FeedbackComment</p>
+            }
+            else
+            {
+                <p class="muted">Cliente ainda não avaliou.</p>
+            }
+        </section>
+    </div>
+}
+
+@section Scripts {
+    @if (Model.Visit is not null)
+    {
+        <script>
+            const dest = [@Model.Visit.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture), @Model.Visit.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)];
+            const map = L.map('map').setView(dest, 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(map);
+            const clientIcon = L.divIcon({ className: '', html: '<div style="width:16px;height:16px;border-radius:50%;background:#38bdf8;border:2px solid #fff"></div>' });
+            const techIcon = L.divIcon({ className: '', html: '<div style="width:16px;height:16px;border-radius:50%;background:#f59e0b;border:2px solid #fff"></div>' });
+            L.marker(dest, { icon: clientIcon }).addTo(map).bindPopup('Cliente');
+            let techMarker = null;
+            async function refresh() {
+                const res = await fetch('?handler=Location');
+                if (!res.ok) return;
+                const data = await res.json();
+                const meta = document.getElementById('trackMeta');
+                if (data.lat == null) {
+                    meta.textContent = 'Aguardando posição GPS';
+                    return;
+                }
+                const pos = [data.lat, data.lon];
+                if (!techMarker) techMarker = L.marker(pos, { icon: techIcon }).addTo(map).bindPopup('Técnico');
+                else techMarker.setLatLng(pos);
+                map.fitBounds(L.latLngBounds([dest, pos]).pad(0.25));
+                const km = data.distanceKm != null ? Number(data.distanceKm).toFixed(1) + ' km' : '';
+                const eta = data.etaMinutes != null ? ' · ~' + Math.round(data.etaMinutes) + ' min' : '';
+                meta.textContent = km + eta;
+            }
+            refresh();
+            setInterval(refresh, 4000);
+        </script>
+    }
+}

@@ -1,0 +1,88 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Fila de despacho";
+    ViewData["Subtitle"] = "Aprove chamados e destine o técnico mais próximo.";
+}
+
+@if (Model.Requests.Count == 0)
+{
+    <div class="empty">Nenhuma requisição pendente. Os chamados do app do cliente aparecem aqui.</div>
+}
+else
+{
+    <div class="grid">
+        @foreach (var req in Model.Requests)
+        {
+            <a class="card @(Model.Selected?.Id == req.Id ? "selected" : "")" asp-page="/Index" asp-route-id="@req.Id">
+                <strong>@req.Protocol</strong>
+                <span class="badge @req.Priority">@req.Priority</span>
+                <p>@req.Title</p>
+                <small class="muted">@StatusDisplay.Label(req.Status) · @req.AddressLine</small>
+            </a>
+        }
+    </div>
+}
+
+@if (Model.Selected is not null)
+{
+    <section class="panel" style="margin-top:1.2rem">
+        <h3>@Model.Selected.Protocol — @Model.Selected.Title</h3>
+        <p>@Model.Selected.Description</p>
+        <p class="muted">@Model.Selected.AddressLine</p>
+        <p><span class="badge @Model.Selected.Status">@StatusDisplay.Label(Model.Selected.Status)</span></p>
+
+        @if (Model.Selected.Status == ServiceRequestStatus.PendenteAprovacao)
+        {
+            <form method="post" asp-page-handler="Approve">
+                <input type="hidden" name="id" value="@Model.Selected.Id" />
+                <button class="btn primary" type="submit">Aprovar requisição</button>
+            </form>
+        }
+
+        @if (Model.Selected.Status == ServiceRequestStatus.AguardandoAtribuicao)
+        {
+            <h4>Sugestões de despacho</h4>
+            @if (Model.Recommendations.Count == 0)
+            {
+                <p class="muted">Nenhum técnico disponível no momento.</p>
+            }
+            else
+            {
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Score</th>
+                            <th>Técnico</th>
+                            <th>Distância</th>
+                            <th>ETA</th>
+                            <th>Carga</th>
+                            <th>Motivo</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var rec in Model.Recommendations)
+                        {
+                            <tr class="@(rec == Model.Recommendations.FirstOrDefault() ? "best" : null)">
+                                <td>@rec.Score</td>
+                                <td>@rec.TechnicianName (@rec.EmployeeCode)</td>
+                                <td>@rec.DistanceKm km</td>
+                                <td>@(rec.EtaMinutes?.ToString("0") ?? "—") min</td>
+                                <td>@rec.ActiveVisitsToday / restam @rec.VisitsRemainingToday</td>
+                                <td>@rec.Rationale</td>
+                                <td>
+                                    <form method="post" asp-page-handler="Assign">
+                                        <input type="hidden" name="id" value="@Model.Selected.Id" />
+                                        <input type="hidden" name="technicianId" value="@rec.TechnicianId" />
+                                        <button class="btn ok" type="submit">Destinar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        }
+    </section>
+}

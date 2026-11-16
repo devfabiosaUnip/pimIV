@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Central de Manutenção</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <span class="brand-mark">M</span>
+                <div>
+                    <strong>Manutenção</strong>
+                    <small>Painel ASP.NET</small>
+                </div>
+            </div>
+            <nav>
+                <a asp-page="/Index" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : null)">Fila de despacho</a>
+                <a asp-page="/Visitas" class="@(ViewContext.RouteData.Values["page"]?.ToString()?.StartsWith("/Visitas") == true ? "active" : null)">Visitas e rastreio</a>
+                <a asp-page="/Tecnicos" class="@(ViewContext.RouteData.Values["page"]?.ToString() == "/Tecnicos" ? "active" : null)">Técnicos</a>
+            </nav>
+            <form asp-page="/Logout" method="post" class="logout">
+                <button type="submit">Sair</button>
+            </form>
+        </aside>
+        <div class="content">
+            <header class="topbar">
+                <div>
+                    <h1>@ViewData["Title"]</h1>
+                    <p>@ViewData["Subtitle"]</p>
+                </div>
+                <div class="user-chip">@User.Identity?.Name</div>
+            </header>
+            <main>
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
